@@ -1,0 +1,624 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title GourmetHub | Mis Favoritos
+
+    link(rel="stylesheet", href="/css/R.css")
+    script(src="https://cdn.tailwindcss.com")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Cherry+Bomb+One&display=swap")
+
+  body.bg-pattern
+    nav.fixed.top-4.left-0.right-0.mx-auto.max-w-5xl.backdrop-blur-md.shadow-lg.rounded-full.z-50.px-6.py-3.border-2.border-pink-100(class="w-[90%] bg-white/90")
+      .flex.justify-between.items-center
+
+        a.text-2xl.font-bold.text-pink-500.cute-title.flex.items-center.gap-2(href="/")
+          i.fas.fa-cookie-bite.floating
+          |  GourmetHub
+
+        .hidden.space-x-6.font-bold.text-sm.items-center(class="md:flex")
+          a.text-gray-500.transition(href="/" class="hover:text-pink-500") ✨ Inicio
+          a.text-pink-500.font-bold(href="/favoritos-vista") ❤️ Mis favoritos
+          span.text-pink-400.font-bold 🌸 Hola, #{usuario.nombre}
+          button.text-gray-500.transition.font-bold(
+            class="hover:text-pink-500"
+            onclick="cerrarSesion()"
+          ) 👋 Cerrar sesión
+
+        button.text-pink-500.text-xl(class="md:hidden")
+          i.fas.fa-heart
+
+    header.pt-40.pb-10.px-6
+      .container.mx-auto.text-center.relative
+        .absolute.opacity-50.rotate-12.text-pink-200.text-6xl.hidden(class="lg:block -top-10 left-10")
+          i.fas.fa-cloud
+        .absolute.opacity-50.text-yellow-200.text-5xl.hidden(class="lg:block top-20 right-10 -rotate-12")
+          i.fas.fa-star
+        p.text-5xl.mb-4 ❤️
+        h1.font-bold.mb-4.cute-title.text-pink-500(class="text-4xl md:text-5xl")
+          | Mis recetitas
+          span.text-purple-400  favoritas
+        p.text-gray-500.max-w-xl.mx-auto.text-lg.font-medium
+          | Todo lo que tu corazón eligió 🌸
+
+    main.container.mx-auto.px-6.py-10
+
+      if favoritos.length === 0
+        .flex.flex-col.items-center.justify-center.py-24.text-center
+          p.text-7xl.mb-6 🍰
+          h2.text-2xl.font-bold.cute-title.text-gray-700.mb-4 Aún no tienes favoritas
+          p.text-gray-400.text-sm.leading-relaxed.mb-8(class="max-w-sm")
+            | Explora las recetas y guarda las que más te gusten con el corazoncito 💕
+          a.bg-pink-500.text-white.font-bold.px-8.py-4.rounded-full.shadow-lg.transition-all.duration-300(
+            href="/"
+            class="hover:bg-pink-600 hover:scale-105"
+          ) Explorar recetas ✨
+
+      else
+        #grid-favoritos.grid.grid-cols-1.gap-8(class="md:grid-cols-2 lg:grid-cols-3")
+          each fav in favoritos
+            .recipe-card.bg-white.overflow-hidden.shadow-lg.border-2.border-pink-50(
+              class="rounded-[2.5rem]"
+              data-id=fav.RecipeID
+            )
+              .relative.h-64.overflow-hidden
+                img.w-full.h-full.object-cover.transition.duration-700(
+                  class="hover:scale-110"
+                  src=fav.Imagen
+                  alt=fav.Titulo
+                )
+                button.absolute.top-4.right-4.bg-white.rounded-full.w-9.h-9.flex.items-center.justify-center.shadow-md.transition-all.duration-300(
+                  class="hover:scale-110"
+                  onclick=`quitarFavorito(${fav.RecipeID}, this)`
+                  title="Quitar de favoritos"
+                )
+                  i.fas.fa-heart.text-pink-500
+
+              .p-8.text-center
+                h3.text-xl.font-bold.mb-6.text-gray-700.cute-title= fav.Titulo
+                button.w-full.bg-pink-50.text-pink-500.font-bold.py-4.rounded-3xl.transition-all.duration-300.shadow-sm(
+                  class="hover:bg-pink-500 hover:text-white hover:shadow-pink-200"
+                  onclick=`openModal(${fav.RecipeID})`
+                ) Ver Recetita 🍰
+
+    footer.py-12.text-center.bg-white.border-t-4.border-pink-50
+      p.text-pink-300.font-bold.tracking-widest.uppercase.text-xs
+        | Hecho con mucho 
+        i.fas.fa-heart.mx-1.text-pink-500
+        |  Gourmet Hub Keila Gallardo
+
+    #modal-overlay.fixed.inset-0.z-50.hidden.items-center.justify-center(
+      class="bg-black/50 backdrop-blur-sm"
+      onclick="closeModal(event)"
+    )
+      .relative.bg-white.w-full.mx-4.overflow-y-auto(
+        class="md:mx-auto md:max-w-4xl rounded-[2rem] max-h-[90vh]"
+      )
+        button.absolute.top-4.right-4.z-10.bg-white.rounded-full.w-10.h-10.flex.items-center.justify-center.shadow-md.text-pink-400(
+          class="hover:text-pink-600 transition-colors"
+          onclick="closeModalBtn()"
+        ) ✕
+
+        #modal-loading.p-20.text-center.hidden
+          p.text-pink-300.text-lg.font-bold.cute-title Cargando recetita... 🍰
+
+        #modal-content.opacity-0
+          .flex.flex-col(class="md:flex-row")
+
+            .h-72(class="md:w-1/2 md:h-[600px]")
+              img#modal-img.w-full.h-full.object-cover(src="" alt="")
+
+            .p-10.bg-white.overflow-y-auto(class="md:w-1/2 md:p-14 md:h-[600px]")
+              span#modal-category.text-pink-400.font-bold.uppercase.block.mb-2(
+                class="text-[10px] tracking-[0.2em]"
+              )
+              h2#modal-title.text-4xl.font-bold.mb-4.cute-title.text-gray-700.leading-tight
+
+              button#modal-fav-btn.flex.items-center.gap-2.bg-pink-50.text-pink-400.font-bold.px-5.py-2.rounded-full.mb-6.transition-all.duration-300(
+                class="hover:bg-pink-100"
+                onclick="toggleFavoritoModal()"
+              )
+                i#modal-fav-icon.fas.fa-heart.text-pink-500
+                span#modal-fav-text En favoritos
+
+              #modal-badges.flex.flex-wrap.gap-2.mb-6
+              .flex.gap-8.mb-8.py-6.border-y-2.border-pink-50
+                div
+                  p.uppercase.font-black.text-pink-300.mb-1(class="text-[10px]") Tiempo
+                  p#modal-time.font-bold.text-gray-600
+                div
+                  p.uppercase.font-black.text-pink-300.mb-1(class="text-[10px]") Porciones
+                  p#modal-portions.font-bold.text-gray-600
+              .mb-8
+                h4.font-bold.text-lg.mb-4.cute-title.text-purple-400 ✨ Ingredientes
+                ul#modal-ingredients.grid.grid-cols-1.gap-3.text-sm.text-gray-500.font-medium
+              div
+                h4.font-bold.text-lg.mb-4.cute-title.text-yellow-500 🌸 Preparación
+                #modal-instructions.text-gray-500.text-sm.leading-loose
+              .mt-10.text-center
+                p.text-pink-200.text-3xl
+                  i.fas.fa-heart
+
+    //- Pasar favoritos del servidor a JS
+
+    script.
+      var favoritosStr = JSON.stringify(favoritos).replace(/\//g, '\\/').replace(/<\/script>/gi, '<\\/script>')
+      const favoritosData = !{favoritosStr};
+      let modalRecipeActual = null;
+
+      // ✅ QUITAR FAVORITO — corregido
+      async function quitarFavorito(id, btn) {
+        try {
+          const res = await fetch(`/favoritos/${id}`, { method: 'DELETE' });
+
+          if (!res.ok) {
+            console.error('Error al quitar favorito');
+            return;
+          }
+
+          // Animar y quitar la card
+          const card = btn.closest('.recipe-card');
+          card.style.transition = 'all 0.4s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.9)';
+
+          setTimeout(() => {
+            card.remove();
+            const grid = document.getElementById('grid-favoritos');
+            if (grid && grid.children.length === 0) {
+              grid.outerHTML = `
+                <div class="flex flex-col items-center justify-center py-24 text-center">
+                  <p class="text-7xl mb-6">🍰</p>
+                  <h2 class="text-2xl font-bold cute-title text-gray-700 mb-4">Aún no tienes favoritas</h2>
+                  <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
+                    Explora las recetas y guarda las que más te gusten con el corazoncito 💕
+                  </p>
+                  <a href="/" class="bg-pink-500 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:bg-pink-600 transition-all duration-300">
+                    Explorar recetas ✨
+                  </a>
+                </div>
+              `;
+            }
+          }, 400);
+
+        } catch (err) {
+          console.error('Error:', err);
+        }
+      }
+
+      // ✅ ABRIR MODAL — usa datos locales, sin llamar a la API
+      function openModal(id) {
+        const fav = favoritosData.find(f => String(f.RecipeID) === String(id));
+        if (!fav) return;
+
+        modalRecipeActual = fav;
+
+        const overlay = document.getElementById('modal-overlay');
+        const loading = document.getElementById('modal-loading');
+        const content = document.getElementById('modal-content');
+
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        loading.classList.remove('hidden');
+        content.classList.add('opacity-0');
+
+        document.getElementById('modal-img').src = fav.Imagen;
+        document.getElementById('modal-img').alt = fav.Titulo;
+        document.getElementById('modal-category').textContent = `✨ ${fav.Categoria || 'Receta'}`;
+        document.getElementById('modal-title').textContent = fav.Titulo;
+        document.getElementById('modal-time').textContent = fav.Tiempo || '-';
+        document.getElementById('modal-portions').textContent = fav.Porciones || '-';
+
+        const instrEl = document.getElementById('modal-instructions');
+        if (fav.Instrucciones && fav.Instrucciones !== 'Sin instrucciones disponibles.') {
+          instrEl.innerHTML = fav.Instrucciones
+            .split('\n')
+            .filter(l => l.trim())
+            .map(l => `<p class="mb-2">${l}</p>`)
+            .join('');
+        } else if (fav.Resumen) {
+          instrEl.innerHTML = `<p class="text-gray-400 italic text-xs mb-3">Resumen:</p><p>${fav.Resumen.substring(0, 300)}...</p>`;
+        } else {
+          instrEl.textContent = 'Sin instrucciones disponibles.';
+        }
+
+        const ingredientes = Array.isArray(fav.Ingredientes) ? fav.Ingredientes : [];
+        document.getElementById('modal-ingredients').innerHTML = ingredientes.map(ing => `
+          <li class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-pink-200 rounded-full flex-shrink-0"></span>${ing}
+          </li>
+        `).join('');
+
+        const badges = [];
+        if (fav.Vegetariano) badges.push('🌿 Vegetariano');
+        if (fav.Vegano)      badges.push('🌱 Vegano');
+        if (fav.SinGluten)   badges.push('🌾 Sin gluten');
+        if (fav.SinLacteos)  badges.push('🥛 Sin lácteos');
+        document.getElementById('modal-badges').innerHTML = badges.map(b =>
+          `<span class="bg-pink-50 text-pink-400 text-[10px] font-bold px-3 py-1 rounded-full">${b}</span>`
+        ).join('');
+
+        loading.classList.add('hidden');
+        content.classList.remove('opacity-0');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // ✅ QUITAR FAVORITO DESDE EL MODAL
+      async function toggleFavoritoModal() {
+        if (!modalRecipeActual) return;
+        const id = String(modalRecipeActual.RecipeID);
+
+        try {
+          const res = await fetch(`/favoritos/${id}`, { method: 'DELETE' });
+          if (!res.ok) return;
+
+          // Actualizar botón del modal
+          document.getElementById('modal-fav-icon').classList.replace('fas', 'far');
+          document.getElementById('modal-fav-icon').classList.remove('text-pink-500');
+          document.getElementById('modal-fav-text').textContent = 'Quitado de favoritos';
+
+          // Animar y quitar la card del grid
+          const card = document.querySelector(`.recipe-card[data-id="${id}"]`);
+          if (card) {
+            card.style.transition = 'all 0.4s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+              card.remove();
+              const grid = document.getElementById('grid-favoritos');
+              if (grid && grid.children.length === 0) {
+                grid.outerHTML = `
+                  <div class="flex flex-col items-center justify-center py-24 text-center">
+                    <p class="text-7xl mb-6">🍰</p>
+                    <h2 class="text-2xl font-bold cute-title text-gray-700 mb-4">Aún no tienes favoritas</h2>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
+                      Explora las recetas y guarda las que más te gusten con el corazoncito 💕
+                    </p>
+                    <a href="/" class="bg-pink-500 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:bg-pink-600 transition-all duration-300">
+                      Explorar recetas ✨
+                    </a>
+                  </div>
+                `;
+              }
+            }, 400);
+          }
+
+          setTimeout(() => closeModalBtn(), 600);
+
+        } catch (err) {
+          console.error('Error:', err);
+        }
+      }
+
+      function closeModalBtn() {
+        document.getElementById('modal-overlay').classList.add('hidden');
+        document.getElementById('modal-overlay').classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+
+      function closeModal(event) {
+        if (event.target === document.getElementById('modal-overlay')) closeModalBtn();
+      }
+
+      async function cerrarSesion() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+      }
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModalBtn();
+      });doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title GourmetHub | Mis Favoritos
+
+    link(rel="stylesheet", href="/css/R.css")
+    script(src="https://cdn.tailwindcss.com")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Cherry+Bomb+One&display=swap")
+
+  body.bg-pattern
+
+    nav.fixed.top-4.left-0.right-0.mx-auto.max-w-5xl.backdrop-blur-md.shadow-lg.rounded-full.z-50.px-6.py-3.border-2.border-pink-100(class="w-[90%] bg-white/90")
+      .flex.justify-between.items-center
+
+        a.text-2xl.font-bold.text-pink-500.cute-title.flex.items-center.gap-2(href="/")
+          i.fas.fa-cookie-bite.floating
+          |  GourmetHub
+
+        .hidden.space-x-6.font-bold.text-sm.items-center(class="md:flex")
+          a.text-gray-500.transition(href="/" class="hover:text-pink-500") ✨ Inicio
+          a.text-pink-500.font-bold(href="/favoritos-vista") ❤️ Mis favoritos
+          span.text-pink-400.font-bold 🌸 Hola, #{usuario.nombre}
+          button.text-gray-500.transition.font-bold(
+            class="hover:text-pink-500"
+            onclick="cerrarSesion()"
+          ) 👋 Cerrar sesión
+
+        button.text-pink-500.text-xl(class="md:hidden")
+          i.fas.fa-heart
+
+    header.pt-40.pb-10.px-6
+      .container.mx-auto.text-center.relative
+        .absolute.opacity-50.rotate-12.text-pink-200.text-6xl.hidden(class="lg:block -top-10 left-10")
+          i.fas.fa-cloud
+        .absolute.opacity-50.text-yellow-200.text-5xl.hidden(class="lg:block top-20 right-10 -rotate-12")
+          i.fas.fa-star
+        p.text-5xl.mb-4 ❤️
+        h1.font-bold.mb-4.cute-title.text-pink-500(class="text-4xl md:text-5xl")
+          | Mis recetitas
+          span.text-purple-400  favoritas
+        p.text-gray-500.max-w-xl.mx-auto.text-lg.font-medium
+          | Todo lo que tu corazón eligió 🌸
+
+    main.container.mx-auto.px-6.py-10
+
+      if favoritos.length === 0
+        .flex.flex-col.items-center.justify-center.py-24.text-center
+          p.text-7xl.mb-6 🍰
+          h2.text-2xl.font-bold.cute-title.text-gray-700.mb-4 Aún no tienes favoritas
+          p.text-gray-400.text-sm.leading-relaxed.mb-8(class="max-w-sm")
+            | Explora las recetas y guarda las que más te gusten con el corazoncito 💕
+          a.bg-pink-500.text-white.font-bold.px-8.py-4.rounded-full.shadow-lg.transition-all.duration-300(
+            href="/"
+            class="hover:bg-pink-600 hover:scale-105"
+          ) Explorar recetas ✨
+
+      else
+        #grid-favoritos.grid.grid-cols-1.gap-8(class="md:grid-cols-2 lg:grid-cols-3")
+          each fav in favoritos
+            .recipe-card.bg-white.overflow-hidden.shadow-lg.border-2.border-pink-50(
+              class="rounded-[2.5rem]"
+              data-id=fav.RecipeID
+            )
+              .relative.h-64.overflow-hidden
+                img.w-full.h-full.object-cover.transition.duration-700(
+                  class="hover:scale-110"
+                  src=fav.Imagen
+                  alt=fav.Titulo
+                )
+                button.absolute.top-4.right-4.bg-white.rounded-full.w-9.h-9.flex.items-center.justify-center.shadow-md.transition-all.duration-300(
+                  class="hover:scale-110"
+                  onclick=`quitarFavorito(${fav.RecipeID}, this)`
+                  title="Quitar de favoritos"
+                )
+                  i.fas.fa-heart.text-pink-500
+
+              .p-8.text-center
+                h3.text-xl.font-bold.mb-6.text-gray-700.cute-title= fav.Titulo
+                button.w-full.bg-pink-50.text-pink-500.font-bold.py-4.rounded-3xl.transition-all.duration-300.shadow-sm(
+                  class="hover:bg-pink-500 hover:text-white hover:shadow-pink-200"
+                  onclick=`openModal(${fav.RecipeID})`
+                ) Ver Recetita 🍰
+
+    footer.py-12.text-center.bg-white.border-t-4.border-pink-50
+      p.text-pink-300.font-bold.tracking-widest.uppercase.text-xs
+        | Hecho con mucho 
+        i.fas.fa-heart.mx-1.text-pink-500
+        |  Gourmet Hub Keila Gallardo
+
+    #modal-overlay.fixed.inset-0.z-50.hidden.items-center.justify-center(
+      class="bg-black/50 backdrop-blur-sm"
+      onclick="closeModal(event)"
+    )
+      .relative.bg-white.w-full.mx-4.overflow-y-auto(
+        class="md:mx-auto md:max-w-4xl rounded-[2rem] max-h-[90vh]"
+      )
+        button.absolute.top-4.right-4.z-10.bg-white.rounded-full.w-10.h-10.flex.items-center.justify-center.shadow-md.text-pink-400(
+          class="hover:text-pink-600 transition-colors"
+          onclick="closeModalBtn()"
+        ) ✕
+
+        #modal-loading.p-20.text-center.hidden
+          p.text-pink-300.text-lg.font-bold.cute-title Cargando recetita... 🍰
+
+        #modal-content.opacity-0
+          .flex.flex-col(class="md:flex-row")
+
+            .h-72(class="md:w-1/2 md:h-[600px]")
+              img#modal-img.w-full.h-full.object-cover(src="" alt="")
+
+            .p-10.bg-white.overflow-y-auto(class="md:w-1/2 md:p-14 md:h-[600px]")
+              span#modal-category.text-pink-400.font-bold.uppercase.block.mb-2(
+                class="text-[10px] tracking-[0.2em]"
+              )
+              h2#modal-title.text-4xl.font-bold.mb-4.cute-title.text-gray-700.leading-tight
+
+              button#modal-fav-btn.flex.items-center.gap-2.bg-pink-50.text-pink-400.font-bold.px-5.py-2.rounded-full.mb-6.transition-all.duration-300(
+                class="hover:bg-pink-100"
+                onclick="toggleFavoritoModal()"
+              )
+                i#modal-fav-icon.fas.fa-heart.text-pink-500
+                span#modal-fav-text En favoritos
+
+              #modal-badges.flex.flex-wrap.gap-2.mb-6
+              .flex.gap-8.mb-8.py-6.border-y-2.border-pink-50
+                div
+                  p.uppercase.font-black.text-pink-300.mb-1(class="text-[10px]") Tiempo
+                  p#modal-time.font-bold.text-gray-600
+                div
+                  p.uppercase.font-black.text-pink-300.mb-1(class="text-[10px]") Porciones
+                  p#modal-portions.font-bold.text-gray-600
+              .mb-8
+                h4.font-bold.text-lg.mb-4.cute-title.text-purple-400 ✨ Ingredientes
+                ul#modal-ingredients.grid.grid-cols-1.gap-3.text-sm.text-gray-500.font-medium
+              div
+                h4.font-bold.text-lg.mb-4.cute-title.text-yellow-500 🌸 Preparación
+                #modal-instructions.text-gray-500.text-sm.leading-loose
+              .mt-10.text-center
+                p.text-pink-200.text-3xl
+                  i.fas.fa-heart
+
+    //- Pasar favoritos del servidor a JS
+    - const favoritosJSON = JSON.stringify(favoritos)
+
+    script.
+      const favoritosData = !{favoritosJSON};
+      let modalRecipeActual = null;
+
+      // ✅ QUITAR FAVORITO — corregido
+      async function quitarFavorito(id, btn) {
+        try {
+          const res = await fetch(`/favoritos/${id}`, { method: 'DELETE' });
+
+          if (!res.ok) {
+            console.error('Error al quitar favorito');
+            return;
+          }
+
+          // Animar y quitar la card
+          const card = btn.closest('.recipe-card');
+          card.style.transition = 'all 0.4s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.9)';
+
+          setTimeout(() => {
+            card.remove();
+            const grid = document.getElementById('grid-favoritos');
+            if (grid && grid.children.length === 0) {
+              grid.outerHTML = `
+                <div class="flex flex-col items-center justify-center py-24 text-center">
+                  <p class="text-7xl mb-6">🍰</p>
+                  <h2 class="text-2xl font-bold cute-title text-gray-700 mb-4">Aún no tienes favoritas</h2>
+                  <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
+                    Explora las recetas y guarda las que más te gusten con el corazoncito 💕
+                  </p>
+                  <a href="/" class="bg-pink-500 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:bg-pink-600 transition-all duration-300">
+                    Explorar recetas ✨
+                  </a>
+                </div>
+              `;
+            }
+          }, 400);
+
+        } catch (err) {
+          console.error('Error:', err);
+        }
+      }
+
+      // ✅ ABRIR MODAL — usa datos locales, sin llamar a la API
+      function openModal(id) {
+        const fav = favoritosData.find(f => String(f.RecipeID) === String(id));
+        if (!fav) return;
+
+        modalRecipeActual = fav;
+
+        const overlay = document.getElementById('modal-overlay');
+        const loading = document.getElementById('modal-loading');
+        const content = document.getElementById('modal-content');
+
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        loading.classList.remove('hidden');
+        content.classList.add('opacity-0');
+
+        document.getElementById('modal-img').src = fav.Imagen;
+        document.getElementById('modal-img').alt = fav.Titulo;
+        document.getElementById('modal-category').textContent = `✨ ${fav.Categoria || 'Receta'}`;
+        document.getElementById('modal-title').textContent = fav.Titulo;
+        document.getElementById('modal-time').textContent = fav.Tiempo || '-';
+        document.getElementById('modal-portions').textContent = fav.Porciones || '-';
+
+        const instrEl = document.getElementById('modal-instructions');
+        if (fav.Instrucciones && fav.Instrucciones !== 'Sin instrucciones disponibles.') {
+          instrEl.innerHTML = fav.Instrucciones
+            .split('\n')
+            .filter(l => l.trim())
+            .map(l => `<p class="mb-2">${l}</p>`)
+            .join('');
+        } else if (fav.Resumen) {
+          instrEl.innerHTML = `<p class="text-gray-400 italic text-xs mb-3">Resumen:</p><p>${fav.Resumen.substring(0, 300)}...</p>`;
+        } else {
+          instrEl.textContent = 'Sin instrucciones disponibles.';
+        }
+
+        const ingredientes = Array.isArray(fav.Ingredientes) ? fav.Ingredientes : [];
+        document.getElementById('modal-ingredients').innerHTML = ingredientes.map(ing => `
+          <li class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-pink-200 rounded-full flex-shrink-0"></span>${ing}
+          </li>
+        `).join('');
+
+        const badges = [];
+        if (fav.Vegetariano) badges.push('🌿 Vegetariano');
+        if (fav.Vegano)      badges.push('🌱 Vegano');
+        if (fav.SinGluten)   badges.push('🌾 Sin gluten');
+        if (fav.SinLacteos)  badges.push('🥛 Sin lácteos');
+        document.getElementById('modal-badges').innerHTML = badges.map(b =>
+          `<span class="bg-pink-50 text-pink-400 text-[10px] font-bold px-3 py-1 rounded-full">${b}</span>`
+        ).join('');
+
+        loading.classList.add('hidden');
+        content.classList.remove('opacity-0');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // ✅ QUITAR FAVORITO DESDE EL MODAL
+      async function toggleFavoritoModal() {
+        if (!modalRecipeActual) return;
+        const id = String(modalRecipeActual.RecipeID);
+
+        try {
+          const res = await fetch(`/favoritos/${id}`, { method: 'DELETE' });
+          if (!res.ok) return;
+
+          // Actualizar botón del modal
+          document.getElementById('modal-fav-icon').classList.replace('fas', 'far');
+          document.getElementById('modal-fav-icon').classList.remove('text-pink-500');
+          document.getElementById('modal-fav-text').textContent = 'Quitado de favoritos';
+
+          // Animar y quitar la card del grid
+          const card = document.querySelector(`.recipe-card[data-id="${id}"]`);
+          if (card) {
+            card.style.transition = 'all 0.4s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+              card.remove();
+              const grid = document.getElementById('grid-favoritos');
+              if (grid && grid.children.length === 0) {
+                grid.outerHTML = `
+                  <div class="flex flex-col items-center justify-center py-24 text-center">
+                    <p class="text-7xl mb-6">🍰</p>
+                    <h2 class="text-2xl font-bold cute-title text-gray-700 mb-4">Aún no tienes favoritas</h2>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm">
+                      Explora las recetas y guarda las que más te gusten con el corazoncito 💕
+                    </p>
+                    <a href="/" class="bg-pink-500 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:bg-pink-600 transition-all duration-300">
+                      Explorar recetas ✨
+                    </a>
+                  </div>
+                `;
+              }
+            }, 400);
+          }
+
+          setTimeout(() => closeModalBtn(), 600);
+
+        } catch (err) {
+          console.error('Error:', err);
+        }
+      }
+
+      function closeModalBtn() {
+        document.getElementById('modal-overlay').classList.add('hidden');
+        document.getElementById('modal-overlay').classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+
+      function closeModal(event) {
+        if (event.target === document.getElementById('modal-overlay')) closeModalBtn();
+      }
+
+      async function cerrarSesion() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+      }
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModalBtn();
+      });

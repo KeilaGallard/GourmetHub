@@ -1,0 +1,133 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title GourmetHub | Iniciar sesión
+
+    link(rel="stylesheet", href="/css/R.css")
+    script(src="https://cdn.tailwindcss.com")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Cherry+Bomb+One&display=swap")
+
+  body.bg-pattern.min-h-screen.flex.items-center.justify-center.px-4
+
+    .bg-white.w-full.max-w-md.p-12.shadow-2xl.border-2.border-pink-50.relative(class="rounded-[3rem]")
+
+      //- Decoración
+      .absolute.text-pink-200.text-4xl(class="-top-5 -right-5")
+        i.fas.fa-heart
+      .absolute.text-yellow-200.text-3xl(class="-bottom-4 -left-4")
+        i.fas.fa-star
+
+      //- Logo
+      .text-center.mb-10
+        a.text-3xl.font-bold.text-pink-500.cute-title.flex.items-center.justify-center.gap-2(href="/")
+          i.fas.fa-cookie-bite
+          |  GourmetHub
+        p.text-gray-400.text-sm.mt-2.font-medium ¡Bienvenida de vuelta! 🍰
+
+      //- Mensaje de error
+      #error-msg.hidden.bg-pink-50.text-pink-500.text-sm.font-bold.px-4.py-3.rounded-2xl.mb-6.text-center
+
+      //- Mensaje de éxito
+      #success-msg.hidden.bg-purple-50.text-purple-400.text-sm.font-bold.px-4.py-3.rounded-2xl.mb-6.text-center
+
+      //- Formulario
+      .space-y-5
+        .space-y-2
+          label.text-xs.font-bold.uppercase.tracking-widest.text-pink-400.px-4 Correo
+          .relative
+            input#correo.w-full.px-6.py-4.font-medium.text-sm.border-2.outline-none.transition-all(
+              class="rounded-full bg-pink-50/50 border-transparent focus:border-pink-200"
+              type="email"
+              placeholder="tu@correo.com"
+            )
+
+        .space-y-2
+          label.text-xs.font-bold.uppercase.tracking-widest.text-pink-400.px-4 Contraseña
+          .relative
+            input#contrasena.w-full.px-6.py-4.font-medium.text-sm.border-2.outline-none.transition-all(
+              class="rounded-full bg-pink-50/50 border-transparent focus:border-pink-200"
+              type="password"
+              placeholder="••••••••"
+            )
+
+        button.w-full.bg-pink-500.text-white.font-bold.py-4.rounded-full.shadow-lg.transition-all.duration-300.mt-4(
+          class="hover:bg-pink-600 hover:scale-105"
+          onclick="handleLogin()"
+        ) Entrar ✨
+
+      .text-center.mt-8
+        p.text-gray-400.text-sm.font-medium
+          | ¿Aún no tienes cuenta?
+          a.text-pink-500.font-bold.ml-1(href="/signup" class="hover:text-pink-600") Regístrate 🌸
+
+    script.
+      async function handleLogin() {
+        const correo = document.getElementById('correo').value.trim();
+        const contrasena = document.getElementById('contrasena').value;
+        const errorMsg = document.getElementById('error-msg');
+        const successMsg = document.getElementById('success-msg');
+
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+
+        // Validaciones
+        if (!correo) {
+          errorMsg.textContent = 'Por favor ingresa tu correo 💌';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(correo)) {
+          errorMsg.textContent = 'El correo no tiene un formato válido 🍬';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        if (!contrasena) {
+          errorMsg.textContent = 'Por favor ingresa tu contraseña 🔑';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Correo: correo, Contrasena: contrasena })
+          });
+
+          const data = await res.json();
+
+          if (res.status === 401) {
+            errorMsg.textContent = data.mensaje === 'Usuario no encontrado'
+              ? 'No encontramos ese correo 🍬'
+              : 'Contraseña incorrecta 🔑';
+            errorMsg.classList.remove('hidden');
+            return;
+          }
+
+          if (!res.ok) {
+            errorMsg.textContent = 'Error del servidor, intenta más tarde 😢';
+            errorMsg.classList.remove('hidden');
+            return;
+          }
+
+          successMsg.textContent = `¡Bienvenida de vuelta! 🌸 Redirigiendo...`;
+          successMsg.classList.remove('hidden');
+
+          setTimeout(() => { window.location.href = '/'; }, 1500);
+
+        } catch (err) {
+          errorMsg.textContent = 'Error de conexión, intenta más tarde 😢';
+          errorMsg.classList.remove('hidden');
+        }
+      }
+
+      // Enter para enviar
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleLogin();
+      });

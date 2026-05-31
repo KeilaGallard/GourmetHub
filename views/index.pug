@@ -1,0 +1,552 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Gourmet Hub | Recetas con Amor
+
+    link(rel="stylesheet", href="/css/R.css")
+    script(src="https://cdn.tailwindcss.com")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Cherry+Bomb+One&display=swap")
+
+  body.bg-pattern
+
+    nav.fixed.top-4.left-0.right-0.mx-auto.max-w-5xl.backdrop-blur-md.shadow-lg.rounded-full.z-50.px-6.py-3.border-2.border-pink-100(class="w-[90%] bg-white/90")
+      .flex.justify-between.items-center
+
+        a.text-2xl.font-bold.text-pink-500.cute-title.flex.items-center.gap-2(href="/")
+          i.fas.fa-cookie-bite.floating
+          |  GourmetHub
+
+        .hidden.space-x-6.font-bold.text-sm.items-center(class="md:flex")
+          a.text-gray-500.transition(href="#inicio" class="hover:text-pink-500") ✨ Inicio
+
+          if usuario
+            a.text-gray-500.transition(href="/favoritos-vista" class="hover:text-pink-500") ❤️ Mis favoritos
+            span.text-pink-400.font-bold 🌸 Hola, #{usuario.nombre}
+            button.text-gray-500.transition.font-bold(
+              class="hover:text-pink-500"
+              onclick="cerrarSesion()"
+            ) 👋 Cerrar sesión
+          else
+            a.text-gray-500.transition(href="/login" class="hover:text-pink-500") 🔑 Iniciar sesión
+            a.text-gray-500.transition(href="/signup" class="hover:text-pink-500") 🌸 Registrarse
+
+        button.text-pink-500.text-xl#menuBtn(class="md:hidden")
+          i.fas.fa-heart
+
+    header#inicio.pt-40.pb-20.px-6
+      .container.mx-auto.text-center.relative
+        .absolute.opacity-50.rotate-12.text-pink-200.text-6xl.hidden(class="lg:block -top-10 left-10")
+          i.fas.fa-cloud
+        .absolute.opacity-50.text-yellow-200.text-5xl.hidden(class="lg:block top-20 right-10 -rotate-12")
+          i.fas.fa-star
+        h1.font-bold.mb-6.cute-title.text-pink-500(class="text-4xl md:text-6xl")
+          | Cocina con 
+          span.text-purple-400 magia
+          br
+          | y mucho amor
+        p.text-gray-500.max-w-xl.mx-auto.text-lg.mb-10.font-medium
+          | Descubre 30 recetas súper tiernas y deliciosas para endulzar tus días ✨
+
+    main.container.mx-auto.px-6.py-10
+      if limitAlcanzado
+        .flex.flex-col.items-center.justify-center.py-24.text-center
+          p.text-7xl.mb-6 🍰
+          h2.text-3xl.font-bold.cute-title.text-gray-700.mb-4 ¡Límite alcanzado!
+          p.text-gray-400.leading-relaxed(class="max-w-sm text-sm")
+            | Hemos llegado al límite de consultas del día.
+            br
+            br
+            | ¡Vuelve mañana para seguir explorando recetitas deliciosas! 🌸
+      else
+        .grid.grid-cols-1.gap-8(class="md:grid-cols-2 lg:grid-cols-3")
+          each recipe in recetas
+            .recipe-card.bg-white.overflow-hidden.shadow-lg.border-2.border-pink-50(class="rounded-[2.5rem]")
+              .relative.h-64.overflow-hidden
+                img.w-full.h-full.object-cover.transition.duration-700(
+                  class="hover:scale-110"
+                  src=recipe.image
+                  alt=recipe.title
+                )
+                .absolute.top-4.left-4.px-4.py-1.rounded-full.font-bold.text-pink-500.uppercase.shadow-sm(class="bg-white/90 backdrop-blur text-[10px] tracking-widest")
+                  | ✨ #{recipe.category}
+
+                //- ❤️ Botón favorito en la card (solo si está logado)
+                if usuario
+                  button.absolute.top-4.right-4.bg-white.rounded-full.w-9.h-9.flex.items-center.justify-center.shadow-md.transition-all.duration-300.fav-btn(
+                    class="hover:scale-110"
+                    data-id=recipe.id
+                    data-titulo=recipe.title
+                    data-imagen=recipe.image
+                    onclick="toggleFavorito(this)"
+                  )
+                    i.far.fa-heart.text-pink-300
+
+              .p-8.text-center
+                h3.text-xl.font-bold.mb-4.text-gray-700.cute-title= recipe.title
+                .flex.justify-center.items-center.gap-6.text-xs.text-pink-300.mb-8.font-bold.uppercase.tracking-tighter
+                  span
+                    i.far.fa-clock.mr-1
+                    | #{recipe.protein}
+                  span
+                    i.fas.fa-cookie.mr-1
+                    | #{recipe.calories}
+                button.w-full.bg-pink-50.text-pink-500.font-bold.py-4.rounded-3xl.transition-all.duration-300.shadow-sm(
+                  class="hover:bg-pink-500 hover:text-white hover:shadow-pink-200"
+                  onclick=`openModal(${recipe.id}, '${recipe.title}', '${recipe.image}')`
+                ) Ver Recetita 🍰
+
+    section#satisfaccion.py-24
+  .container.mx-auto.px-6.max-w-3xl.text-center
+    .inline-block.p-4.bg-yellow-100.rounded-full.mb-6.floating
+      i.fas.fa-magic.text-yellow-500.text-2xl
+    h2.text-4xl.font-bold.mb-4.cute-title.text-pink-500 ¿Te gustó el sitio?
+    p.text-gray-500.mb-12.font-medium Tu opinión nos hace saltar de alegría
+
+    .bg-white.p-12.shadow-2xl.border-2.border-pink-50.text-left.relative(class="rounded-[4rem]")
+      .absolute.text-pink-300.text-4xl(class="-top-6 -right-6")
+        i.fas.fa-sparkles
+
+      .mb-10.text-center
+        p.font-bold.mb-6.text-gray-700 Danos muchas estrellitas
+
+        .flex.justify-center.gap-4.text-4xl#stars-container
+          button.star-btn.text-pink-100.transition-all.duration-200(
+            type="button"
+            data-value="1"
+            onclick="setRating(1)"
+            class="hover:scale-125"
+          )
+            i.fas.fa-star
+          button.star-btn.text-pink-100.transition-all.duration-200(
+            type="button"
+            data-value="2"
+            onclick="setRating(2)"
+            class="hover:scale-125"
+          )
+            i.fas.fa-star
+          button.star-btn.text-pink-100.transition-all.duration-200(
+            type="button"
+            data-value="3"
+            onclick="setRating(3)"
+            class="hover:scale-125"
+          )
+            i.fas.fa-star
+          button.star-btn.text-pink-100.transition-all.duration-200(
+            type="button"
+            data-value="4"
+            onclick="setRating(4)"
+            class="hover:scale-125"
+          )
+            i.fas.fa-star
+          button.star-btn.text-pink-100.transition-all.duration-200(
+            type="button"
+            data-value="5"
+            onclick="setRating(5)"
+            class="hover:scale-125"
+          )
+            i.fas.fa-star
+
+        p#rating-label.text-pink-300.text-sm.font-bold.mt-4.h-5
+
+      //- Mensaje feedback
+      #feedback-msg.hidden.text-center.text-sm.font-bold.px-4.py-3.rounded-2xl.mb-6
+
+      button.w-full.bg-purple-500.text-white.font-bold.py-5.rounded-full.shadow-lg.transition-all.duration-300(
+        type="button"
+        onclick="submitFeedback()"
+        class="hover:bg-purple-600 hover:scale-105"
+      ) Enviar mis deseos ✨
+
+    footer.py-12.text-center.bg-white.border-t-4.border-pink-50
+      p.text-pink-300.font-bold.tracking-widest.uppercase.text-xs
+        | Hecho con mucho 
+        i.fas.fa-heart.mx-1.text-pink-500
+        |  Gourmet Hub Keila Gallardo
+
+    //- MODAL
+    #modal-overlay.fixed.inset-0.z-50.hidden.items-center.justify-center(
+      class="bg-black/50 backdrop-blur-sm"
+      onclick="closeModal(event)"
+    )
+      .relative.bg-white.w-full.mx-4.overflow-y-auto(
+        class="md:mx-auto md:max-w-4xl rounded-[2rem] max-h-[90vh]"
+      )
+        button.absolute.top-4.right-4.z-10.bg-white.rounded-full.w-10.h-10.flex.items-center.justify-center.shadow-md.text-pink-400(
+          class="hover:text-pink-600 transition-colors"
+          onclick="closeModalBtn()"
+        ) ✕
+
+        #modal-loading.p-20.text-center.hidden
+          p.text-pink-300.text-lg.font-bold.cute-title Cargando recetita... 🍰
+
+        #modal-content.opacity-0
+          .flex.flex-col(class="md:flex-row")
+
+            .h-72(class="md:w-1/2 md:h-[600px]")
+              img#modal-img.w-full.h-full.object-cover(src="" alt="")
+
+            .p-10.bg-white.overflow-y-auto(class="md:w-1/2 md:p-14 md:h-[600px]")
+              span#modal-category.text-pink-400.font-bold.uppercase.block.mb-2(
+                class="text-[10px] tracking-[0.2em]"
+              )
+              h2#modal-title.text-4xl.font-bold.mb-4.cute-title.text-gray-700.leading-tight
+
+              //- ❤️ Botón favorito en el modal
+              if usuario
+                button#modal-fav-btn.flex.items-center.gap-2.bg-pink-50.text-pink-400.font-bold.px-5.py-2.rounded-full.mb-6.transition-all.duration-300(
+                  class="hover:bg-pink-100"
+                  onclick="toggleFavoritoModal()"
+                )
+                  i#modal-fav-icon.far.fa-heart
+                  span#modal-fav-text Agregar a favoritos
+
+              #modal-badges.flex.flex-wrap.gap-2.mb-6
+              .flex.gap-8.mb-8.py-6.border-y-2.border-pink-50
+                div
+                  p.uppercase.font-black.text-pink-300.mb-1(class="text-[10px]") Tiempo
+                  p#modal-time.font-bold.text-gray-600
+                div
+                  p.uppercase.font-black.text-pink-300.mb-1(class="text-[10px]") Porciones
+                  p#modal-portions.font-bold.text-gray-600
+              .mb-8
+                h4.font-bold.text-lg.mb-4.cute-title.text-purple-400 ✨ Ingredientes
+                ul#modal-ingredients.grid.grid-cols-1.gap-3.text-sm.text-gray-500.font-medium
+              div
+                h4.font-bold.text-lg.mb-4.cute-title.text-yellow-500 🌸 Preparación
+                #modal-instructions.text-gray-500.text-sm.leading-loose
+              .mt-10.text-center
+                p.text-pink-200.text-3xl
+                  i.fas.fa-heart
+
+    //- Pasar dato de sesión a JS
+    - const usuarioLogado = usuario ? true : false
+    script.
+      const USUARIO_LOGADO = !{JSON.stringify(usuarioLogado)};
+      let favoritosActuales = new Set();
+      let modalRecipeData = {};
+
+      // Cargar favoritos al iniciar
+      async function cargarFavoritos() {
+        if (!USUARIO_LOGADO) return;
+        try {
+          const res = await fetch('/favoritos');
+          const favs = await res.json();
+          favs.forEach(f => favoritosActuales.add(String(f.RecipeID)));
+          actualizarCorazones();
+        } catch (err) { console.error(err); }
+      }
+
+      function actualizarCorazones() {
+        document.querySelectorAll('.fav-btn').forEach(btn => {
+          const id = String(btn.dataset.id);
+          const icon = btn.querySelector('i');
+          if (favoritosActuales.has(id)) {
+            icon.classList.replace('far', 'fas');
+            icon.classList.replace('text-pink-300', 'text-pink-500');
+          } else {
+            icon.classList.replace('fas', 'far');
+            icon.classList.replace('text-pink-500', 'text-pink-300');
+          }
+        });
+      }
+
+      async function toggleFavorito(btn) {
+        if (!USUARIO_LOGADO) { window.location.href = '/login'; return; }
+        const id = String(btn.dataset.id);
+        const titulo = btn.dataset.titulo;
+        const imagen = btn.dataset.imagen;
+
+        if (favoritosActuales.has(id)) {
+          await fetch(`/favoritos/${id}`, { method: 'DELETE' });
+          favoritosActuales.delete(id);
+        } else {
+          // Primero obtenemos los detalles completos de la receta
+          const res = await fetch(`/recipe/${id}`);
+          const recipe = await res.json();
+
+          await fetch('/favoritos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipeId: id,
+              titulo: recipe.title,
+              imagen: recipe.img,
+              categoria: recipe.category,
+              tiempo: recipe.time,
+              porciones: recipe.portions,
+              ingredientes: recipe.ingredients,
+              instrucciones: recipe.instructions,
+              resumen: recipe.summary,
+              vegetariano: recipe.vegetarian,
+              vegano: recipe.vegan,
+              sinGluten: recipe.glutenFree,
+              sinLacteos: recipe.dairyFree
+            })
+          });
+          favoritosActuales.add(id);
+        }
+        actualizarCorazones();
+        actualizarCorazonModal();
+      }
+
+      async function toggleFavoritoModal() {
+        if (!USUARIO_LOGADO) { window.location.href = '/login'; return; }
+        const id = String(modalRecipeData.id);
+
+        if (favoritosActuales.has(id)) {
+          await fetch(`/favoritos/${id}`, { method: 'DELETE' });
+          favoritosActuales.delete(id);
+        } else {
+          await fetch('/favoritos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipeId: id,
+              titulo: modalRecipeData.titulo,
+              imagen: modalRecipeData.imagen,
+              categoria: modalRecipeData.categoria,
+              tiempo: modalRecipeData.tiempo,
+              porciones: modalRecipeData.porciones,
+              ingredientes: modalRecipeData.ingredientes,
+              instrucciones: modalRecipeData.instrucciones,
+              resumen: modalRecipeData.resumen,
+              vegetariano: modalRecipeData.vegetarian,
+              vegano: modalRecipeData.vegan,
+              sinGluten: modalRecipeData.glutenFree,
+              sinLacteos: modalRecipeData.dairyFree
+            })
+          });
+          favoritosActuales.add(id);
+        }
+        actualizarCorazones();
+        actualizarCorazonModal();
+      }
+
+      function actualizarCorazonModal() {
+        const icon = document.getElementById('modal-fav-icon');
+        const text = document.getElementById('modal-fav-text');
+        if (!icon || !text) return;
+        const id = String(modalRecipeData.id);
+        if (favoritosActuales.has(id)) {
+          icon.classList.replace('far', 'fas');
+          text.textContent = 'En favoritos';
+        } else {
+          icon.classList.replace('fas', 'far');
+          text.textContent = 'Agregar a favoritos';
+        }
+      }
+
+      async function openModal(id, titulo, imagen) {
+        modalRecipeData = { id, titulo, imagen };
+        const overlay = document.getElementById('modal-overlay');
+        const loading = document.getElementById('modal-loading');
+        const content = document.getElementById('modal-content');
+
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        loading.classList.remove('hidden');
+        content.classList.add('opacity-0');
+
+        try {
+          const res = await fetch(`/recipe/${id}`);
+
+          if (res.status === 402) {
+            loading.classList.add('hidden');
+            content.classList.remove('opacity-0');
+            content.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-24 px-10 text-center">
+                <p class="text-6xl mb-6">🍰</p>
+                <h3 class="text-2xl font-bold cute-title text-gray-700 mb-3">¡Límite alcanzado!</h3>
+                <p class="text-gray-400 text-sm leading-relaxed max-w-xs">
+                  Hemos llegado al límite de consultas del día.<br><br>
+                  ¡Vuelve mañana para seguir explorando recetitas deliciosas! 🌸
+                </p>
+                <button onclick="closeModalBtn()" class="mt-8 bg-pink-50 text-pink-400 font-bold px-8 py-3 rounded-3xl hover:bg-pink-400 hover:text-white transition-all duration-300">
+                  Cerrar
+                </button>
+              </div>
+            `;
+            document.body.style.overflow = 'hidden';
+            return;
+          }
+
+          const recipe = await res.json();
+
+          // ✅ Guardar todos los datos para toggleFavoritoModal y para guardar en BD
+          modalRecipeData = {
+            id,
+            titulo: recipe.title,
+            imagen: recipe.img,
+            categoria: recipe.category,
+            tiempo: recipe.time,
+            porciones: recipe.portions,
+            ingredientes: recipe.ingredients,
+            instrucciones: recipe.instructions,
+            resumen: recipe.summary,
+            vegetarian: recipe.vegetarian,
+            vegan: recipe.vegan,
+            glutenFree: recipe.glutenFree,
+            dairyFree: recipe.dairyFree
+          };
+
+          document.getElementById('modal-img').src = recipe.img;
+          document.getElementById('modal-img').alt = recipe.title;
+          document.getElementById('modal-category').textContent = `✨ ${recipe.category}`;
+          document.getElementById('modal-title').textContent = recipe.title;
+          document.getElementById('modal-time').textContent = recipe.time;
+          document.getElementById('modal-portions').textContent = recipe.portions;
+
+          actualizarCorazonModal();
+
+          const instrEl = document.getElementById('modal-instructions');
+          if (recipe.instructions && recipe.instructions !== 'Sin instrucciones disponibles.') {
+            instrEl.innerHTML = recipe.instructions
+              .split('\n')
+              .filter(line => line.trim())
+              .map(line => `<p class="mb-2">${line}</p>`)
+              .join('');
+          } else if (recipe.summary) {
+            instrEl.innerHTML = `<p class="text-gray-400 italic text-xs mb-3">Sin instrucciones paso a paso. Resumen:</p><p>${recipe.summary.substring(0, 300)}...</p>`;
+          } else {
+            instrEl.textContent = 'Sin instrucciones disponibles.';
+          }
+
+          const ul = document.getElementById('modal-ingredients');
+          ul.innerHTML = recipe.ingredients.map(ing => `
+            <li class="flex items-center gap-3">
+              <span class="w-2 h-2 bg-pink-200 rounded-full flex-shrink-0"></span>${ing}
+            </li>
+          `).join('');
+
+          const badgesEl = document.getElementById('modal-badges');
+          if (badgesEl) {
+            const badges = [];
+            if (recipe.vegetarian) badges.push('🌿 Vegetariano');
+            if (recipe.vegan)      badges.push('🌱 Vegano');
+            if (recipe.glutenFree) badges.push('🌾 Sin gluten');
+            if (recipe.dairyFree)  badges.push('🥛 Sin lácteos');
+            badgesEl.innerHTML = badges.map(b =>
+              `<span class="bg-pink-50 text-pink-400 text-[10px] font-bold px-3 py-1 rounded-full">${b}</span>`
+            ).join('');
+          }
+
+          loading.classList.add('hidden');
+          content.classList.remove('opacity-0');
+          document.body.style.overflow = 'hidden';
+
+        } catch (err) {
+          console.error(err);
+          loading.innerHTML = '<p class="text-pink-300 font-bold cute-title">Error al cargar la recetita 😢</p>';
+        }
+      }
+
+      function closeModalBtn() {
+        document.getElementById('modal-overlay').classList.add('hidden');
+        document.getElementById('modal-overlay').classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+
+      function closeModal(event) {
+        if (event.target === document.getElementById('modal-overlay')) closeModalBtn();
+      }
+
+      async function cerrarSesion() {
+        await fetch('/logout', { method: 'POST' });
+        window.location.href = '/';
+      }
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModalBtn();
+      });
+
+      cargarFavoritos();
+
+      let ratingSeleccionado = 0;
+
+      const mensajesRating = {
+        1: 'Necesita mejorar... 😕',
+        2: 'Está bien, pero puede mejorar 🍬',
+        3: '¡Está bonito! 🌸',
+        4: '¡Me encanta! ✨',
+        5: '¡Es perfecto, lo amo! 💖'
+      };
+
+      const coloresRating = {
+        1: 'text-red-400',
+        2: 'text-orange-400',
+        3: 'text-yellow-400',
+        4: 'text-pink-400',
+        5: 'text-pink-500'
+      };
+
+      function setRating(valor) {
+        ratingSeleccionado = valor;
+        const stars = document.querySelectorAll('.star-btn');
+        const label = document.getElementById('rating-label');
+        const colorClass = coloresRating[valor];
+
+        stars.forEach((btn, index) => {
+          const icon = btn.querySelector('i');
+          // Quitar todos los colores previos
+          icon.className = 'fas fa-star';
+
+          if (index < valor) {
+            // Estrella activa
+            icon.classList.add(colorClass);
+            btn.style.transform = 'scale(1.2)';
+          } else {
+            // Estrella inactiva
+            icon.classList.add('text-pink-100');
+            btn.style.transform = 'scale(1)';
+          }
+        });
+
+        label.textContent = mensajesRating[valor];
+        label.className = `text-sm font-bold mt-4 h-5 ${colorClass}`;
+      }
+
+      async function submitFeedback() {
+        const feedbackMsg = document.getElementById('feedback-msg');
+
+        if (ratingSeleccionado === 0) {
+          feedbackMsg.textContent = '¡Selecciona cuántas estrellitas nos das! ⭐';
+          feedbackMsg.className = 'text-center text-sm font-bold px-4 py-3 rounded-2xl mb-6 bg-pink-50 text-pink-400';
+          feedbackMsg.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          const res = await fetch('/valoracion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estrellas: ratingSeleccionado })
+          });
+
+          if (!res.ok) throw new Error();
+
+          feedbackMsg.textContent = '¡Gracias por tu valoración! 💖';
+          feedbackMsg.className = 'text-center text-sm font-bold px-4 py-3 rounded-2xl mb-6 bg-purple-50 text-purple-400';
+          feedbackMsg.classList.remove('hidden');
+
+          // Resetear estrellas después de enviar
+          setTimeout(() => {
+            ratingSeleccionado = 0;
+            document.querySelectorAll('.star-btn i').forEach(icon => {
+              icon.className = 'fas fa-star text-pink-100';
+            });
+            document.querySelectorAll('.star-btn').forEach(btn => {
+              btn.style.transform = 'scale(1)';
+            });
+            document.getElementById('rating-label').textContent = '';
+            feedbackMsg.classList.add('hidden');
+          }, 2500);
+
+        } catch (err) {
+          feedbackMsg.textContent = 'Error al enviar, intenta de nuevo 😢';
+          feedbackMsg.className = 'text-center text-sm font-bold px-4 py-3 rounded-2xl mb-6 bg-pink-50 text-pink-400';
+          feedbackMsg.classList.remove('hidden');
+        }
+      }

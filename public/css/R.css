@@ -1,0 +1,68 @@
+        :root {
+            --cute-pink: #ffdae9;
+            --cute-dark-pink: #ff85a1;
+            --cute-purple: #f3e8ff;
+            --cute-yellow: #fef9c3;
+            --text-soft: #5f4b66;
+        }
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fffafb;
+            color: var(--text-soft);
+            scroll-behavior: smooth;
+        }
+        .cute-title { 
+            font-family: 'Cherry Bomb One', cursive; 
+            letter-spacing: 1px;
+        }
+        
+        .recipe-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 3px solid transparent;
+        }
+        .recipe-card:hover {
+            transform: scale(1.03) rotate(1deg);
+            border-color: var(--cute-dark-pink);
+            box-shadow: 0 15px 30px rgba(255, 133, 161, 0.2);
+        }
+        
+        .modal-enter { animation: bubbleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
+        @keyframes bubbleIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .category-pill {
+            background: white;
+            transition: all 0.3s;
+            border: 2px solid var(--cute-pink);
+        }
+        .category-pill.active {
+            background-color: var(--cute-dark-pink);
+            color: white;
+            border-color: var(--cute-dark-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 133, 161, 0.3);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .bg-pattern {
+            background-image: radial-gradient(#ffdae9 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--cute-purple); }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--cute-dark-pink); 
+            border-radius: 10px;
+            border: 2px solid var(--cute-purple);
+        }

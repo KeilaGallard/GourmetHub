@@ -1,0 +1,164 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title GourmetHub | Registrarse
+
+    link(rel="stylesheet", href="/css/R.css")
+    script(src="https://cdn.tailwindcss.com")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Cherry+Bomb+One&display=swap")
+
+  body.bg-pattern.min-h-screen.flex.items-center.justify-center.px-4
+
+    .bg-white.w-full.max-w-md.p-12.shadow-2xl.border-2.border-pink-50.relative(class="rounded-[3rem]")
+
+      //- Decoración
+      .absolute.text-pink-200.text-4xl(class="-top-5 -right-5")
+        i.fas.fa-heart
+      .absolute.text-yellow-200.text-3xl(class="-bottom-4 -left-4")
+        i.fas.fa-star
+
+      //- Logo
+      .text-center.mb-10
+        a.text-3xl.font-bold.text-pink-500.cute-title.flex.items-center.justify-center.gap-2(href="/")
+          i.fas.fa-cookie-bite
+          |  GourmetHub
+        p.text-gray-400.text-sm.mt-2.font-medium ¡Crea tu cuenta y cocina con amor! 🌸
+
+      //- Mensaje de error
+      #error-msg.hidden.bg-pink-50.text-pink-500.text-sm.font-bold.px-4.py-3.rounded-2xl.mb-6.text-center
+
+      //- Mensaje de éxito
+      #success-msg.hidden.bg-purple-50.text-purple-400.text-sm.font-bold.px-4.py-3.rounded-2xl.mb-6.text-center
+
+      //- Formulario
+      .space-y-5
+        .space-y-2
+            label.text-xs.font-bold.uppercase.tracking-widest.text-pink-400.px-4 Nombre de usuario
+            input#nombre.w-full.px-6.py-4.font-medium.text-sm.border-2.outline-none.transition-all(
+                class="rounded-full bg-pink-50/50 border-transparent focus:border-pink-200"
+                type="text"
+                placeholder="tu nombre bonito 🌸"
+            )
+        .space-y-2
+          label.text-xs.font-bold.uppercase.tracking-widest.text-pink-400.px-4 Correo
+          input#correo.w-full.px-6.py-4.font-medium.text-sm.border-2.outline-none.transition-all(
+            class="rounded-full bg-pink-50/50 border-transparent focus:border-pink-200"
+            type="email"
+            placeholder="tu@correo.com"
+          )
+
+        .space-y-2
+          label.text-xs.font-bold.uppercase.tracking-widest.text-pink-400.px-4 Contraseña
+          input#contrasena.w-full.px-6.py-4.font-medium.text-sm.border-2.outline-none.transition-all(
+            class="rounded-full bg-pink-50/50 border-transparent focus:border-pink-200"
+            type="password"
+            placeholder="••••••••"
+          )
+
+        .space-y-2
+          label.text-xs.font-bold.uppercase.tracking-widest.text-pink-400.px-4 Confirmar contraseña
+          input#confirmar.w-full.px-6.py-4.font-medium.text-sm.border-2.outline-none.transition-all(
+            class="rounded-full bg-pink-50/50 border-transparent focus:border-pink-200"
+            type="password"
+            placeholder="••••••••"
+          )
+
+        button.w-full.bg-pink-500.text-white.font-bold.py-4.rounded-full.shadow-lg.transition-all.duration-300.mt-4(
+          class="hover:bg-pink-600 hover:scale-105"
+          onclick="handleSignup()"
+        ) Crear cuenta ✨
+
+      .text-center.mt-8
+        p.text-gray-400.text-sm.font-medium
+          | ¿Ya tienes cuenta?
+          a.text-pink-500.font-bold.ml-1(href="/login" class="hover:text-pink-600") Inicia sesión 🔑
+
+    script.
+      async function handleSignup() {
+        const nombre = document.getElementById('nombre').value.trim();
+        const correo = document.getElementById('correo').value.trim();
+        const contrasena = document.getElementById('contrasena').value;
+        const confirmar = document.getElementById('confirmar').value;
+        const errorMsg = document.getElementById('error-msg');
+        const successMsg = document.getElementById('success-msg');
+
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+
+        // Validaciones
+        if (!nombre) {
+            errorMsg.textContent = 'Por favor ingresa tu nombre de usuario 🌸';
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
+        if (nombre.length < 3) {
+            errorMsg.textContent = 'El nombre debe tener al menos 3 caracteres 🍬';
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+        
+        if (!correo) {
+          errorMsg.textContent = 'Por favor ingresa tu correo 💌';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(correo)) {
+          errorMsg.textContent = 'El correo no tiene un formato válido 🍬';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        if (!contrasena) {
+          errorMsg.textContent = 'Por favor ingresa una contraseña 🔑';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        if (contrasena.length < 6) {
+          errorMsg.textContent = 'La contraseña debe tener al menos 6 caracteres 🍬';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        if (contrasena !== confirmar) {
+          errorMsg.textContent = 'Las contraseñas no coinciden 💔';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          const res = await fetch('/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Correo: correo, Contrasena: contrasena, NombreUsuario: nombre, })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            errorMsg.textContent = data.mensaje || 'Error al registrarse, intenta más tarde 😢';
+            errorMsg.classList.remove('hidden');
+            return;
+          }
+
+          successMsg.textContent = '¡Cuenta creada con éxito! 🌸 Redirigiendo al login...';
+          successMsg.classList.remove('hidden');
+
+          setTimeout(() => { window.location.href = '/login'; }, 1500);
+
+        } catch (err) {
+          errorMsg.textContent = 'Error de conexión, intenta más tarde 😢';
+          errorMsg.classList.remove('hidden');
+        }
+      }
+
+      // Enter para enviar
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleSignup();
+      });
